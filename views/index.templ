@@ -1,0 +1,30 @@
+package views
+
+import "fmt"
+
+type Count struct {
+	Count int
+}
+
+templ Counter(count Count) {
+	Count { fmt.Sprintf("%d", count.Count) }
+}
+
+templ Index(c Count) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>HTMX Counter</title>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<link rel="stylesheet" href="css/index.css"/>
+			<script defer src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
+		</head>
+		<body>
+			<div id="count">
+				@Counter(c)
+			</div>
+			<button hx-target="#count" hx-post="/count">Count</button>
+		</body>
+	</html>
+}

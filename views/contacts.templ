@@ -1,0 +1,99 @@
+package views
+
+type Contact struct {
+	Name  string
+	Email string
+}
+
+type FormData struct {
+	Values map[string]string
+	Errors map[string]string
+}
+
+func NewFormData() FormData {
+	return FormData{
+		Values: make(map[string]string),
+		Errors: make(map[string]string),
+	}
+}
+
+templ SingleContact(contact Contact) {
+	<div hx-swap="beforeend" hx-swap-oob="#contacts">
+		<p>Name: { contact.Name }</p>
+		<p>Email: { contact.Email }</p>
+	</div>
+}
+
+templ OObContact(contact Contact) {
+	@ContactForm(NewFormData())
+	<div hx-swap-oob="beforeend" id="contacts">
+		<p>Name: { contact.Name }</p>
+		<p>Email: { contact.Email }</p>
+	</div>
+}
+
+templ displayContacts(contacts []Contact) {
+	<div id="contacts">
+		<h2>Contacts</h2>
+		for _, contact := range contacts {
+			@SingleContact(contact)
+		}
+	</div>
+}
+
+templ ContactForm(fd FormData) {
+	<style>
+        div {
+            margin-bottom: 1rem;
+        }
+    </style>
+	<form id="form" hx-post="/contacts">
+		<div>
+			<label>
+				Name: <input autofocus type="name" value={ fd.Values["name"] } required name="name"/>
+			</label>
+			if fd.Errors["name"] != "" {
+				<span class="error">{ fd.Errors["name"] }</span>
+			}
+		</div>
+		<div>
+			<label>
+				Email: <input type="email" name="email" value={ fd.Values["email"] } required/>
+			</label>
+			if fd.Errors["email"] != "" {
+				<span class="error">{ fd.Errors["email"] }</span>
+			}
+		</div>
+		<button type="submit">Create Contact</button>
+	</form>
+}
+
+templ Contacts(c []Contact, fd FormData) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>HTMX Contacts</title>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<link rel="stylesheet" href="css/index.css"/>
+			<script defer src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
+		</head>
+		<body>
+			<main>
+				@ContactForm(fd)
+				<hr/>
+				@displayContacts(c)
+			</main>
+		</body>
+		<script>
+		  document.addEventListener("DOMContentLoaded", (event) => {
+			    document.body.addEventListener("htmx:beforeSwap", evt => {
+					if (evt.detail.xhr.status === 422) {
+					   evt.detail.shouldSwap = true;
+					   evt.detail.isError = false;
+					}
+				});
+			});
+		</script>
+	</html>
+}

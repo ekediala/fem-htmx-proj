@@ -1,0 +1,30 @@
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity 500ms ease-in;
+}
+.htmx-request .htmx-indicator {
+    opacity: 1;
+}
+.htmx-request.htmx-indicator {
+    opacity: 1;
+}
+
+main {
+    max-width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    margin: 1rem auto 1rem auto;
+}
+
+main > * {
+    width: 400px;
+}
+
+input {
+    width: 100%;
+}
+
+.error {
+    display: inline-block;
+    color: red;
+}
