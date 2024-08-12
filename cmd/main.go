@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/ekediala/fem-htmx-proj/views"
@@ -12,6 +14,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 )
+
+var id = 0
 
 type headers struct {
 	key   string
@@ -47,6 +51,15 @@ func (d Data) hasEmail(email string) bool {
 	return false
 }
 
+func (d Data) indexOf(id int) int {
+	for i, contact := range d.contacts {
+		if contact.ID == id {
+			return i
+		}
+	}
+	return -1
+}
+
 func newPage() Page {
 	return Page{
 		Data:     newData(),
@@ -66,9 +79,11 @@ func render(c *fiber.Ctx, component templ.Component, status int, h ...headers) e
 }
 
 func createContact(name, email string) views.Contact {
+	id++
 	contact := views.Contact{
 		Name:  name,
 		Email: email,
+		ID:    id,
 	}
 
 	return contact
@@ -93,6 +108,24 @@ func main() {
 
 	app.Get("/count", func(c *fiber.Ctx) error {
 		return render(c, views.Index(data.count), http.StatusOK)
+	})
+
+	app.Delete("/contacts/:id", func(c *fiber.Ctx) error {
+		time.Sleep(3 * time.Second)
+		param := c.Params("id")
+		id, err := strconv.Atoi(param)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).Send([]byte("Invalid ID"))
+		}
+
+		index := data.indexOf(id)
+		if index < 0 {
+			return c.Status(http.StatusNotFound).Send([]byte("Contact not found"))
+		}
+
+		data.contacts = append(data.contacts[:index], data.contacts[index+1:]...)
+		return c.Status(http.StatusOK).Send([]byte(""))
+
 	})
 
 	app.Post("/contacts", func(c *fiber.Ctx) error {

@@ -1,8 +1,11 @@
 package views
 
+import "fmt"
+
 type Contact struct {
 	Name  string
 	Email string
+	ID    int
 }
 
 type FormData struct {
@@ -18,17 +21,28 @@ func NewFormData() FormData {
 }
 
 templ SingleContact(contact Contact) {
-	<div hx-swap="beforeend" hx-swap-oob="#contacts">
-		<p>Name: { contact.Name }</p>
-		<p>Email: { contact.Email }</p>
+	<div class="contact" id={ fmt.Sprintf("contact-%d", contact.ID) }>
+		<div
+			hx-indicator={ fmt.Sprintf("#indicator-%d", contact.ID) }
+			hx-target={ fmt.Sprintf("#contact-%d", contact.ID) }
+			style="cursor:pointer;display:inline"
+			hx-trigger="click"
+			hx-delete={ fmt.Sprintf("/contacts/%d", contact.ID) }
+			hx-swap="outerHTML swap:500ms"
+		>
+			<i class="material-icons">delete</i>
+		</div>
+		<span>Name: { contact.Name }</span> <span>Email: { contact.Email }</span>
+		<div id={ fmt.Sprintf("indicator-%d", contact.ID) } class="htmx-indicator">
+			<img src="images/bars.svg" alt="loading indicator"/>
+		</div>
 	</div>
 }
 
 templ OObContact(contact Contact) {
 	@ContactForm(NewFormData())
 	<div hx-swap-oob="beforeend" id="contacts">
-		<p>Name: { contact.Name }</p>
-		<p>Email: { contact.Email }</p>
+		@SingleContact(contact)
 	</div>
 }
 
@@ -76,6 +90,7 @@ templ Contacts(c []Contact, fd FormData) {
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<link rel="stylesheet" href="css/index.css"/>
+			<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
 			<script defer src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
 		</head>
 		<body>
